@@ -1,15 +1,59 @@
 /* ===================================================================
    Kencana Painting — Shared Script
-   Handles: mobile nav, scroll-reveal, footer year, project rendering
+   Handles: favicon crop, mobile nav, scroll-reveal, footer year, project rendering
    =================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initFavicon();
   setYear();
   initNav();
   initReveal();
   initProjectPreview();   // runs only if #projectPreviewGrid exists (index.html)
   initProjectsPage();     // runs only if #projectGrid exists (projects.html)
 });
+
+/* Crops the wide Kencana_Painting_Logo.jpeg directly to the gold square badge for the browser tab */
+function initFavicon(){
+  const img = new Image();
+  img.src = 'Kencana_Painting_Logo.jpeg';
+  img.onload = () => {
+    const size = 64;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Rounded square clipping path matching the gold badge
+    const r = 13;
+    ctx.beginPath();
+    ctx.moveTo(r, 0);
+    ctx.lineTo(size - r, 0);
+    ctx.quadraticCurveTo(size, 0, size, r);
+    ctx.lineTo(size, size - r);
+    ctx.quadraticCurveTo(size, size, size - r, size);
+    ctx.lineTo(r, size);
+    ctx.quadraticCurveTo(0, size, 0, size - r);
+    ctx.lineTo(0, r);
+    ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.closePath();
+    ctx.clip();
+
+    // Crop exact center square of Kencana_Painting_Logo.jpeg where the gold badge sits
+    const badgeSize = img.height * 0.515;
+    const sx = (img.width - badgeSize) / 2;
+    const sy = (img.height - badgeSize) / 2;
+    ctx.drawImage(img, sx, sy, badgeSize, badgeSize, 0, 0, size, size);
+
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/png';
+    link.href = canvas.toDataURL('image/png');
+  };
+}
 
 function setYear(){
   const el = document.getElementById('year');
